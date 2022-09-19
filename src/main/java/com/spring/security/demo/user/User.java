@@ -1,4 +1,4 @@
-package com.spring.security.demo;
+package com.spring.security.demo.user;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -18,8 +18,6 @@ public class UserSignUpRequest {
     String firstName;
     @NotEmpty(message = "lastName  is required")
     String lastName;
-    @NotEmpty(message = "Phone number  is required")
-    String phoneNumber;
     @NotEmpty(message = "password number is required")
     String password;
 }

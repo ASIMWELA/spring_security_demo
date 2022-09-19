@@ -31,12 +31,12 @@ public class User extends BaseEntity {
     @Column(name = "password", nullable = false, length = 200)
     @JsonIgnore
     String password;
-    @Column(name = "is_member_enabled")
+    @Column(name = "is_user_enabled")
     boolean enabled;
     @ManyToMany(targetEntity = Role.class, fetch = FetchType.EAGER)
     @JoinTable(
-            name = "member_roles",
-            joinColumns = @JoinColumn(name = "member_id"),
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     List<Role> roles = new ArrayList<>();
 }

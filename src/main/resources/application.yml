@@ -23,7 +23,7 @@ spring:
       hibernate:
         format_sql: true
     hibernate:
-      ddl-auto: 'create-drop'
+      ddl-auto: none
     open-in-view:  false
   jackson:
     serialization:
@@ -32,7 +32,7 @@ spring:
     init:
       mode: always
   flyway:
-    enabled: false
+    enabled: true
 
 server:
   error:

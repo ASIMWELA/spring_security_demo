@@ -56,7 +56,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             new ObjectMapper().writeValue(response.getOutputStream(), error);
         }
-
     }
 
     @Override

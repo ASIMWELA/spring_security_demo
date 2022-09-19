@@ -20,5 +20,4 @@ public class Role extends BaseEntity {
     @NaturalId
     @Column(name="role")
     ERole roleName;
-
 }

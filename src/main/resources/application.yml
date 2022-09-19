@@ -1,0 +1,46 @@
+app:
+  jwt:
+    secrete: "${env.JWT_SECRETE}"
+    expiration: "${env.JWT_EXPIRATION_M_SECONDS}"
+
+spring:
+  datasource:
+    url: "${env.DATABASE_URL}"
+    hikari:
+      connection-timeout: 20000
+      minimum-idle: 10
+      maximum-pool-size: 50
+      idle-timeout: 10000
+      max-lifetime: 40000
+      auto-commit: true
+    username: "${env.DB_USER_NAME}"
+    password: "${env.DB_PASSWORD}"
+  main:
+    banner-mode: off
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    hibernate:
+      ddl-auto: 'create-drop'
+    open-in-view:  false
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
+  sql:
+    init:
+      mode: always
+  flyway:
+    enabled: false
+
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-exception: false
+    include-stacktrace: on_param
+  tomcat:
+    connection-timeout: 70000
+  port: 8080
+

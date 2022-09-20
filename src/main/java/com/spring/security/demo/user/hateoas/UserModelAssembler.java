@@ -12,6 +12,7 @@ public class UserModelAssembler implements RepresentationModelAssembler<User, Us
         return UserModel.builder()
                 .firstName(entity.getFirstName())
                 .lastName(entity.getLastName())
+                .userName(entity.getUserName())
                 .enabled(entity.isEnabled())
                 .build();
     }

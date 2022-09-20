@@ -1,12 +1,10 @@
 package com.spring.security.demo.user.impl;
 
 import com.spring.security.demo.commons.ApiResponse;
+import com.spring.security.demo.exception.EntityNotFoundException;
 import com.spring.security.demo.role.ERole;
 import com.spring.security.demo.role.IRoleService;
-import com.spring.security.demo.user.IUserRepository;
-import com.spring.security.demo.user.IUserService;
-import com.spring.security.demo.user.User;
-import com.spring.security.demo.user.UserSignUpRequest;
+import com.spring.security.demo.user.*;
 import com.spring.security.demo.user.hateoas.UserModel;
 import com.spring.security.demo.user.hateoas.UserModelAssembler;
 import com.spring.security.demo.util.UuidGenerator;
@@ -27,6 +25,9 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
 public class UserServiceImpl implements IUserService, UserDetailsService {
@@ -50,7 +51,7 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
                 .firstName(userSignUpRequest.getFirstName())
                 .lastName(userSignUpRequest.getLastName())
                 .userName(userSignUpRequest.getUserName())
-                        .uuid(UuidGenerator.generateRandomString(12))
+                .uuid(UuidGenerator.generateRandomString(12))
                 .password(passwordEncoder.encode(userSignUpRequest.getPassword()))
                 .roles(Collections.singletonList(roleService.findRoleByName(ERole.ROLE_USER)))
                 .build());
@@ -62,15 +63,22 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
     @Override
     public ResponseEntity<UserModel> getUser(Authentication authentication) {
-        return null;
+        return ResponseEntity.ok(
+                userModelAssembler.toModel(
+                        userRepository.findByUserName(authentication.getName()).orElseThrow(() -> new EntityNotFoundException("User not found"))
+                ).add(linkTo(methodOn(UserController.class)
+                        .getAllUsers(0, 20, null))
+                        .withRel("users"))
+        );
     }
 
     @Override
     public ResponseEntity<PagedModel<?>> getAllUsers(int page, int size, PagedResourcesAssembler<User> userPagedResourcesAssembler) {
         Page<User> pagedUsers = userRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
-        if(pagedUsers.hasContent()){
-         return ResponseEntity.ok( userPagedResourcesAssembler
-                   .toModel(pagedUsers,userModelAssembler));
+
+        if (pagedUsers.hasContent()) {
+            return ResponseEntity.ok(userPagedResourcesAssembler
+                    .toModel(pagedUsers, userModelAssembler));
         }
         return ResponseEntity.ok(userPagedResourcesAssembler.toEmptyModel(pagedUsers, UserModel.class));
     }

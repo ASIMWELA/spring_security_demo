@@ -42,5 +42,5 @@ server:
     include-stacktrace: on_param
   tomcat:
     connection-timeout: 70000
-  port: 8080
+  port: 8082
 

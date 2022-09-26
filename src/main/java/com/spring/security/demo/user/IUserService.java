@@ -11,4 +11,6 @@ public interface IUserService{
     ResponseEntity<ApiResponse> saveUser(UserSignUpRequest userSignUpRequest);
     ResponseEntity<UserModel> getUser(Authentication authentication);
     ResponseEntity<PagedModel<?>> getAllUsers(int page, int size, PagedResourcesAssembler<User> userPagedResourcesAssembler);
+
+    ResponseEntity<ApiResponse> updateUserRole(String userUuid, String newRole, Authentication currentUser);
 }

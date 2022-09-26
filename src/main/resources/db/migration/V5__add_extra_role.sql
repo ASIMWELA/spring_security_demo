@@ -1,0 +1,1 @@
+INSERT INTO roles(id, uuid, role) VALUES(nextval('id_sequence_generator'), 'hq5nmkopl78G', 'ROLE_EXECUTIVE');

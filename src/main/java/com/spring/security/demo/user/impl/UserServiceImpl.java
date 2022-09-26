@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -124,9 +125,11 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
                             .message("The user already have the role").build(), HttpStatus.BAD_REQUEST);
         }
 
-        user.setRoles(Collections.singletonList(roleToAssign));
+        List<Role> prevRoles = user.getRoles();
+        prevRoles.add(roleToAssign);
+        user.setRoles(prevRoles);
 
-        if(Stream.of(userRepository.save(user)).count()==1){
+        if(Stream.of(userRepository.save(user)).count()>0){
             return ResponseEntity.ok(ApiResponse.builder()
                     .message("User role updated")
                     .sucess(true)
@@ -137,6 +140,27 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
                 .sucess(false)
                 .message("An Error occurred")
                 .build(), HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> disableAccount(String userName) {
+        User user = userRepository.findByUserName(userName).orElseThrow(
+                ()->new EntityNotFoundException("Account not found")
+        );
+        user.setEnabled(false);
+
+        if(Stream.of(userRepository.save(user)).count() > 0 ){
+            return ResponseEntity.ok(
+                    ApiResponse.builder()
+                            .message("Account disabled")
+                            .sucess(true)
+                            .build()
+            );
+        }
+        return ResponseEntity.ok(ApiResponse.builder()
+                        .sucess(false)
+                        .message("An error occured")
+                .build());
     }
 
     @Override

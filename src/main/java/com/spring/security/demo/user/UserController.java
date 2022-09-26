@@ -43,4 +43,16 @@ public class UserController {
     public ResponseEntity<UserModel> getUserDetails(Authentication authentication){
         return userService.getUser(authentication);
     }
+
+    @PutMapping("update-role/{userName}/{role}")
+    public ResponseEntity<ApiResponse> updateUserRole(@PathVariable("userName") String userName,
+                                                      @PathVariable("role") String role,
+                                                      Authentication currentUser){
+        return userService.updateUserRole(userName, role, currentUser);
+    }
+
+    @PutMapping("disable-account/{userName}")
+    public ResponseEntity<ApiResponse> disableAccount(@PathVariable("userName") String userName){
+        return userService.disableAccount(userName);
+    }
 }

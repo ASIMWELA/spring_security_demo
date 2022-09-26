@@ -13,4 +13,6 @@ public interface IUserService{
     ResponseEntity<PagedModel<?>> getAllUsers(int page, int size, PagedResourcesAssembler<User> userPagedResourcesAssembler);
 
     ResponseEntity<ApiResponse> updateUserRole(String userUuid, String newRole, Authentication currentUser);
+
+    ResponseEntity<ApiResponse> disableAccount(String userName);
 }

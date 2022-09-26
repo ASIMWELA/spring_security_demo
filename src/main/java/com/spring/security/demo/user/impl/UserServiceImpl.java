@@ -1,9 +1,11 @@
 package com.spring.security.demo.user.impl;
 
 import com.spring.security.demo.commons.ApiResponse;
+import com.spring.security.demo.exception.EntityAlreadyExistException;
 import com.spring.security.demo.exception.EntityNotFoundException;
 import com.spring.security.demo.role.ERole;
 import com.spring.security.demo.role.IRoleService;
+import com.spring.security.demo.role.Role;
 import com.spring.security.demo.user.*;
 import com.spring.security.demo.user.hateoas.UserModel;
 import com.spring.security.demo.user.hateoas.UserModelAssembler;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -25,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Stream;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -46,6 +50,9 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
     @Override
     public ResponseEntity<ApiResponse> saveUser(UserSignUpRequest userSignUpRequest) {
+        if(userRepository.existsByUserName(userSignUpRequest.getUserName())){
+            throw new EntityAlreadyExistException("Username already taken");
+        }
         userRepository.save(User.builder()
                 .enabled(true)
                 .firstName(userSignUpRequest.getFirstName())
@@ -73,14 +80,63 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     }
 
     @Override
-    public ResponseEntity<PagedModel<?>> getAllUsers(int page, int size, PagedResourcesAssembler<User> userPagedResourcesAssembler) {
-        Page<User> pagedUsers = userRepository.findAll(PageRequest.of(page, size, Sort.by("id").descending()));
+    public ResponseEntity<PagedModel<?>> getAllUsers(int page,
+                                                     int size,
+                                                     PagedResourcesAssembler<User> userPagedResourcesAssembler) {
+        Page<User> pagedUsers = userRepository
+                .findAll(
+                        PageRequest.of(page, size, Sort.by("id")
+                                .descending())
+                );
 
         if (pagedUsers.hasContent()) {
             return ResponseEntity.ok(userPagedResourcesAssembler
                     .toModel(pagedUsers, userModelAssembler));
         }
         return ResponseEntity.ok(userPagedResourcesAssembler.toEmptyModel(pagedUsers, UserModel.class));
+    }
+
+    @Override
+    public ResponseEntity<ApiResponse> updateUserRole(String userUuid,
+                                                      String newRole,
+                                                      Authentication currentUser) {
+
+        User user = userRepository.findByUserName(userUuid).orElseThrow(
+                ()->new EntityNotFoundException("User not found")
+        );
+
+        if(user.getUserName().equals(currentUser.getName())){
+            return new ResponseEntity<>(
+                    ApiResponse.builder()
+                            .sucess(false)
+                            .message("A user cannot change his own role").build(), HttpStatus.BAD_REQUEST);
+        }
+
+        Role roleToAssign = roleService.findRoleByName(ERole.valueOf(newRole));
+        if(user.getRoles().stream()
+                .anyMatch(role->
+                        roleToAssign
+                                .getRoleName()
+                                .equals(role.getRoleName()))){
+            return new ResponseEntity<>(
+                    ApiResponse.builder()
+                    .sucess(false)
+                            .message("The user already have the role").build(), HttpStatus.BAD_REQUEST);
+        }
+
+        user.setRoles(Collections.singletonList(roleToAssign));
+
+        if(Stream.of(userRepository.save(user)).count()==1){
+            return ResponseEntity.ok(ApiResponse.builder()
+                    .message("User role updated")
+                    .sucess(true)
+                    .build());
+        }
+
+        return new ResponseEntity<>(ApiResponse.builder()
+                .sucess(false)
+                .message("An Error occurred")
+                .build(), HttpStatus.BAD_REQUEST);
     }
 
     @Override
